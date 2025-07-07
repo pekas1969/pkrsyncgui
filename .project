@@ -1,0 +1,23 @@
+# Gambas Project File 3.0
+Title=pkrsyncgui
+Startup=MMain
+Icon=icon.png
+Version=0.0.1
+Component=gb.image
+Component=gb.gui
+Component=gb.form
+TabSize=2
+Language=de
+Maintainer=peter
+Address=peter.kasparak@gmail.com
+Url=https://github.com/pekas1969
+License=General Public License
+PackageName=pkrsyncgui-0.0.1
+Packager=1
+Systems=fedora,suse
+Menus=fedora:"Archiving"
+Categories=fedora:"Archiving"
+Groups=fedora:"Applications/Archiving"
+Menus=suse:"Archiving"
+Categories=suse:"Archiving;Utility"
+Groups=suse:"Productivity/Archiving/Backup"

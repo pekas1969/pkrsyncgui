@@ -1,0 +1,82 @@
+' Gambas class file
+
+
+Public Sub Form_Open()
+
+  Label3.text = "© 2025 by Peter Kasparak"
+  get_config_list
+  
+End
+
+Public Sub get_config_list()
+  
+  Dim sList As String[]
+  Dim sTemp As String
+  Dim sPattern As String = "*"
+  
+  sList = Dir(MMain.$Config_Path, sPattern, gb.file)
+
+  ListView1.clear
+  For Each sTemp In sList
+    If Right$(sTemp, 5) = ".conf" Then 
+      ListView1.Add(sTemp, sTemp, Logo.Picture)
+    Endif
+  Next
+  
+End
+
+
+
+Public Sub ListView1_MouseDown()
+
+  If Mouse.Right Then
+    If ListView1.Selected Then 
+      mnuSync_EditSync.Enabled = True
+    Else 
+      mnuSync_EditSync.Enabled = False
+    Endif
+    mnuMain.Popup
+  Endif 
+
+End
+
+Public Sub mnuSync_Quit_Click()
+
+  If Message.Question("Soll das Programm beendet werden?", "Ja", "Nein") = 1 Then
+    Quit 
+  Endif 
+  
+End
+
+Public Sub mnuSync_NewSync_Click()
+
+  FSyncDetails.Caption = "new"
+  FSyncDetails.Show
+
+End
+
+Public Sub ListView1_DblClick()
+
+  FSyncDetails.Caption = MMain.$Config_Path & "/" & ListView1.current.text
+  FSyncDetails.Show
+
+End
+
+Public Sub mnuSync_Aktualisieren_Click()
+
+  get_config_list  
+
+End
+
+Public Sub mnuSync_EditSync_Click()
+
+  ListView1_DblClick()
+
+End
+
+Public Sub Form_Resize()
+
+  ListView1.Width = Me.Width - 14
+  ListView1.Height = Me.Height - 77
+
+End

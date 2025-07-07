@@ -1,0 +1,221 @@
+' Gambas class file
+
+
+Public Sub Form_Open()
+
+  If FSyncDetails.Caption <> "new" Then 
+    get_config
+  Endif
+
+End
+
+Public Function GetSyncPath() As String
+  
+  Dim Pfad As String
+  
+  If Dialog.SelectDirectory() Then
+    ' Benutzer hat den Dialog abgebrochen
+    Return
+  Endif
+  
+  Pfad = Dialog.Path
+
+  Return Pfad
+  
+End 
+
+Public Sub Button1_Click()
+
+  Dim Pfad As String
+  
+  Pfad = GetSyncPath()
+  txtSource.Text = Pfad
+  
+End
+
+Public Sub Button2_Click()
+
+  Dim Pfad As String
+  Dim hFile As Stream
+  
+  Pfad = GetSyncPath()
+  txtDest.Text = Pfad
+
+End
+
+Public Sub Button3_Click()
+
+  Dim oldtext As String
+  
+  oldtext = txtDest.Text
+  txtDest.Text = txtSource.Text
+  txtSource.Text = oldtext
+
+End
+
+Public Sub save_file_as()
+  
+  Dim sFile As String
+  Dim sFileExclude As String
+  Dim hFile As Stream
+  
+  ' Dialog konfigurieren
+  Dialog.Title = "Datei speichern unter..."
+  'Dialog.Filter = ["Konfigurationsdateien (*.conf)", "*.conf", "Alle Dateien (*.*)", "*.*"]
+  Dialog.Filter = ["Konfigurationsdateien (*.conf)", "*.conf"]
+  Dialog.Title = "Konfigurationsdatei auswählen"
+
+If Dialog.OpenFile() = False Then
+  Message.Info("Ausgewählt: " & Dialog.Path)
+Endif
+
+  Dialog.Path = User.Home & "/.config/pkrsyncgui/neue_datei.conf"
+
+  ' Speichern-unter-Dialog öffnen
+  If Dialog.SaveFile() Then
+    ' Benutzer hat abgebrochen
+    Return
+  Endif
+
+  ' Ausgewählten Pfad übernehmen
+  sFile = Dialog.Path
+
+  If Right$(sFile, 5) <> ".conf" Then 
+    sFileExclude = sFile & ".txt"
+    sFile = sFile & ".conf"
+  Else 
+    sFileExclude = Left$(sFile, Len(sFile) - 5) & ".txt"
+  Endif
+
+  'Message(sFile)
+  hFile = Open sFile For Write Create
+  Write #hFile, "src:" & txtSource.text & "\n"  
+  Write #hFile, "dst:" & txtDest.text & "\n"
+  Write #hFile, "del:" & chkDeleteFiles.value & "\n"
+  Close #hFile
+  
+  hFile = Open sFileExclude For Write Create 
+  Write #hfile, txtExclude.Text
+  Close #hFile
+    
+  FSyncDetails.Caption = sFile
+  
+  Message("Saved")
+  
+End
+
+Public Sub Button4_Click()
+
+  If FSyncDetails.Caption = "new" Then 
+    save_file_as
+  Else 
+    save_file
+  Endif
+
+End
+
+Public Sub Button6_Click()
+
+  save_file_as
+
+End
+
+Public Sub get_config()
+  
+  Dim hFile As Stream
+  Dim sOneLine As String
+
+  hFile = Open FSyncDetails.caption For Input
+
+  While Not Eof(hFile)
+    Line Input #hFile, sOneLine
+    If Left$(sOneLine, 4) = "src:" Then 
+      txtSource.text = Right$(sOneline, Len(sOneline) - 4)
+    Else If Left$(sOneLine, 4) = "dst:" Then 
+      txtDest.text = Right$(sOneline, Len(sOneline) - 4)
+    Else If Left$(sOneLine, 4) = "del:" Then 
+      chkDeleteFiles.value = Right$(sOneline, Len(sOneline) - 4)
+    Endif
+  Wend
+
+  Close #hFile
+
+  txtExclude.clear
+
+  hFile = Open Left$(FSyncDetails.caption, Len(FSyncDetails.Caption) - 5) & ".txt" For Input
+    While Not Eof(hFile)
+      Line Input #hFile, sOneLine
+     txtExclude.text = txtExclude.text & sOneLine & "\n"
+    Wend
+  Close #hFile
+End
+
+Public Sub save_file()
+  
+  Dim hFile As Stream
+  
+  hFile = Open FSyncDetails.Caption For Write
+  Write #hFile, "src:" & txtSource.text & "\n"  
+  Write #hFile, "dst:" & txtDest.text & "\n"
+  Write #hFile, "del:" & chkDeleteFiles.value & "\n"
+  Close #hFile
+  
+  hFile = Open Left$(FSyncDetails.caption, Len(FSyncDetails.Caption) - 5) & ".txt" For Write
+  Write #hFile, txtExclude.text
+  Close #hFile
+
+  Message("Saved.")
+  
+End
+
+Public Sub OpenTerminalWithCommand(sCommand As String)
+
+  Dim sTerminal As String
+
+  ' Liste möglicher Terminalemulatoren
+  Dim aTerms As String[] = ["x-terminal-emulator", "gnome-terminal", "konsole", "xfce4-terminal", "xterm"]
+
+  For Each sTerminal In aTerms
+    If Exist(Which(sTerminal)) Then Break
+  Next
+
+  If sTerminal = "" Then
+    Message.Error("Kein unterstützter Terminalemulator gefunden.")
+    Return
+  Endif
+
+  Shell sTerminal & " -e bash -c '" & Replace(sCommand, "'", "'\\''") & "; exec bash'" Wait
+
+End
+
+Private Function Which(sCommand As String) As String
+  Dim sOutput As String
+  Try Shell "which " & sCommand To sOutput
+  If Error Then Return ""
+  Return Trim(sOutput)
+End
+
+
+Public Sub Button5_Click()
+
+  Dim sTerminalCommand As String
+  Dim deleteFiles As String
+  
+  If Exist(txtDest.Text) = False Then
+    Message.Info("Destination path not found.\nPlease ensure that the path exists or is mounted, if it's na network share.")
+    Return
+  Endif
+  
+  If chkDeleteFiles = True Then 
+    deleteFiles = " --delete "
+  Else 
+  Endif
+    deleteFiles = " "
+  
+  sTerminalCommand = "rsync -av" & deleteFiles & "--exclude-from='" & Left$(FSyncDetails.caption, Len(FSyncDetails.Caption) - 5) & ".txt" & "' " & txtSource.text & " " & txtDest.text
+  If Message.Warning("Dies wird den folgenden Befehl starten:\n" & sTerminalCommand & "\nSind Sie sicher?", "Ja", "Nein") = 1 Then 
+    OpenTerminalWithCommand("ls ~/")
+  Endif
+
+
+End

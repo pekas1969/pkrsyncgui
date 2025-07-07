@@ -1,0 +1,74 @@
+' Gambas module file
+
+Public $Config_Path As String
+Public $Config_File As String
+Public Zaehler As Integer
+
+Public $Config_Param1 As New String[]
+Public $Config_Param2 As New String[]
+
+Public $source_path As String
+Public $dest_path As String
+Public $exclude_list As String
+
+Public $action As String
+
+
+Public Sub Main()
+
+  $Config_Path = User.Home & "/.config/pkrsyncgui"
+  $Config_File = Application.Name & ".conf"
+  
+  check_config_dir
+  'get_config
+  FMain.show
+
+End
+
+Public Sub check_config_dir()
+  
+  If Not Exist($Config_Path) Then
+    Mkdir $Config_Path
+  Endif 
+  
+End
+
+Public Sub get_config()
+
+  Dim hFile As Stream
+  Dim sOneLine As String
+
+  hFile = Open $Config_Path & "/" & $Config_File For Input
+
+  While Not Eof(hFile)
+    Line Input #hFile, sOneLine
+    get_config_parameter(sOneLine)
+  Wend
+
+  Close #hFile
+
+End
+
+Public Sub get_config_parameter(configstring As String)
+  Dim Elt As String[]
+  Dim Sb As String
+  Elt = Split(configstring, ";")
+  Inc Zaehler
+  
+  $Config_Param1.Resize(Zaehler + 1)
+  $Config_Param2.Resize(Zaehler + 1)
+  
+  $Config_Param1[Zaehler] = Elt[0]
+  $Config_Param2[Zaehler] = Elt[1]
+End
+
+Public Sub write_config()
+  
+  Dim hFile As Stream
+  
+  hFile = Open $Config_Path & "/" & $Config_File For Write Create
+  Write #hFile, "Beschreibung;Parameter;Parameter\n"
+  Write #hFile, "Beschreibung;Parameter;Parameter\n"
+  Close #hFile
+    
+End

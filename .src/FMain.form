@@ -1,0 +1,48 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,64,88)
+  Icon = Picture["icon.png"]
+  { mnuMain Menu
+    Text = ("Main")
+    Enabled = False
+    Visible = False
+    { mnuSync_NewSync Menu
+      Text = ("Neuer Sync")
+    }
+    { mnuSync_EditSync Menu
+      Text = ("Edit Sync")
+      Enabled = False
+    }
+    { Menu1 Menu
+    }
+    { mnuSync_Aktualisieren Menu
+      Text = ("Aktualisieren")
+    }
+    { Menu2 Menu
+    }
+    { mnuSync_Quit Menu
+      Text = ("Beenden")
+    }
+  }
+  { ListView1 ListView
+    MoveScaled(1,10,62,77)
+  }
+  { Logo PictureBox
+    MoveScaled(2,1,8,8)
+    Picture = Picture.Load("icon_small.png")
+    Stretch = True
+  }
+  { Label1 Label
+    MoveScaled(11,1,11,3)
+    Font = Font["Bold,+2"]
+    Text = ("pkrsync")
+  }
+  { Label2 Label
+    MoveScaled(11,4,20,3)
+    Text = ("Keep your things safe")
+  }
+  { Label3 Label
+    MoveScaled(11,7,43,3)
+  }
+}
